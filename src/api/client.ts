@@ -1,4 +1,5 @@
 const BASE_URL = import.meta.env.VITE_API_BASE_URL ?? 'http://localhost:8080'
+const REQUEST_TIMEOUT_MS = 10_000
 
 export class ApiError extends Error {
   readonly status: number
@@ -13,20 +14,38 @@ export class ApiError extends Error {
   }
 }
 
+export class NetworkError extends Error {
+  constructor(cause: unknown) {
+    super('Network request failed', { cause })
+  }
+}
+
 type RequestOptions = Omit<RequestInit, 'body'> & { body?: unknown }
 
 async function request<T>(path: string, options: RequestOptions = {}): Promise<T> {
-  const { body, headers, ...rest } = options
+  const { body, headers, signal, ...rest } = options
 
-  const response = await fetch(`${BASE_URL}${path}`, {
-    ...rest,
-    credentials: 'include',
-    headers: {
-      ...(body !== undefined ? { 'Content-Type': 'application/json' } : {}),
-      ...headers,
-    },
-    body: body !== undefined ? JSON.stringify(body) : undefined,
-  })
+  const timeoutController = new AbortController()
+  const timeoutId = setTimeout(() => timeoutController.abort(), REQUEST_TIMEOUT_MS)
+  signal?.addEventListener('abort', () => timeoutController.abort(), { once: true })
+
+  let response: Response
+  try {
+    response = await fetch(`${BASE_URL}${path}`, {
+      ...rest,
+      credentials: 'include',
+      signal: timeoutController.signal,
+      headers: {
+        ...(body !== undefined ? { 'Content-Type': 'application/json' } : {}),
+        ...headers,
+      },
+      body: body !== undefined ? JSON.stringify(body) : undefined,
+    })
+  } catch (error) {
+    throw new NetworkError(error)
+  } finally {
+    clearTimeout(timeoutId)
+  }
 
   if (!response.ok) {
     const errorBody = await response.json().catch(() => null)

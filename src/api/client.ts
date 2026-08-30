@@ -1,14 +1,23 @@
 const BASE_URL = import.meta.env.VITE_API_BASE_URL ?? 'http://localhost:8080'
 const REQUEST_TIMEOUT_MS = 10_000
 
+// 백엔드의 모든 응답이 통과하는 공통 봉투 (fm-backend ResponseEnvelope)
+interface ApiEnvelope<T> {
+  code: string
+  message: string
+  data: T
+}
+
 export class ApiError extends Error {
   readonly status: number
+  readonly code: string | null
   readonly retryAfter: string | null
   readonly body: unknown
 
-  constructor(status: number, retryAfter: string | null, body: unknown) {
+  constructor(status: number, code: string | null, retryAfter: string | null, body: unknown) {
     super(`API request failed with status ${status}`)
     this.status = status
+    this.code = code
     this.retryAfter = retryAfter
     this.body = body
   }
@@ -47,16 +56,25 @@ async function request<T>(path: string, options: RequestOptions = {}): Promise<T
     clearTimeout(timeoutId)
   }
 
-  if (!response.ok) {
-    const errorBody = await response.json().catch(() => null)
-    throw new ApiError(response.status, response.headers.get('Retry-After'), errorBody)
-  }
-
   if (response.status === 204) {
+    if (!response.ok) {
+      throw new ApiError(response.status, null, response.headers.get('Retry-After'), null)
+    }
     return undefined as T
   }
 
-  return response.json() as Promise<T>
+  const envelope = (await response.json().catch(() => null)) as ApiEnvelope<T> | null
+
+  if (!response.ok) {
+    throw new ApiError(
+      response.status,
+      envelope?.code ?? null,
+      response.headers.get('Retry-After'),
+      envelope,
+    )
+  }
+
+  return envelope?.data as T
 }
 
 export const apiClient = {

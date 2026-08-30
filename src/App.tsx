@@ -7,6 +7,9 @@ function App() {
       <Link className="text-blue-600 underline" to="/admin/coupon-events">
         쿠폰 이벤트 제어 (관리자)
       </Link>
+      <Link className="text-blue-600 underline" to="/coupons/issue">
+        쿠폰 받기
+      </Link>
     </div>
   )
 }

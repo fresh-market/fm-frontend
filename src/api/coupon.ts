@@ -11,19 +11,22 @@ export interface CouponIssueResponse {
 }
 
 export function issueCoupon(couponId: string) {
-  return apiClient.post<CouponIssueResponse>(`/v1/coupons/${couponId}/issues`)
+  return apiClient.post<CouponIssueResponse>(`/v1/coupons/${encodeURIComponent(couponId)}/issues`)
 }
 
 export function openCouponEvent(couponId: string) {
-  return apiClient.post<void>(`/v1/admin/coupons/${couponId}/event:open`)
+  return apiClient.post<void>(`/v1/admin/coupons/${encodeURIComponent(couponId)}/event:open`)
 }
 
 export function closeCouponEvent(couponId: string) {
-  return apiClient.post<void>(`/v1/admin/coupons/${couponId}/event:close`)
+  return apiClient.post<void>(`/v1/admin/coupons/${encodeURIComponent(couponId)}/event:close`)
 }
 
 export function changeIssuePeriod(couponId: string, request: IssuePeriodUpdateRequest) {
-  return apiClient.patch<void>(`/v1/admin/coupons/${couponId}/issue-period`, request)
+  return apiClient.patch<void>(
+    `/v1/admin/coupons/${encodeURIComponent(couponId)}/issue-period`,
+    request,
+  )
 }
 
 export interface ConsistencyCheckResponse {
@@ -35,7 +38,9 @@ export interface ConsistencyCheckResponse {
 }
 
 export function verifyCouponConsistency(couponId: string) {
-  return apiClient.post<ConsistencyCheckResponse>(`/v1/admin/coupons/${couponId}:verifyConsistency`)
+  return apiClient.post<ConsistencyCheckResponse>(
+    `/v1/admin/coupons/${encodeURIComponent(couponId)}:verifyConsistency`,
+  )
 }
 
 export interface IssuanceStatusResponse {
@@ -45,7 +50,9 @@ export interface IssuanceStatusResponse {
 }
 
 export function fetchIssuanceStatus(couponId: string) {
-  return apiClient.get<IssuanceStatusResponse>(`/v1/coupons/${couponId}/issuance-status`)
+  return apiClient.get<IssuanceStatusResponse>(
+    `/v1/coupons/${encodeURIComponent(couponId)}/issuance-status`,
+  )
 }
 
 // fm-backend CursorPageResponse<T> 그대로. nextPageToken이 없으면 마지막 페이지
@@ -115,7 +122,7 @@ export function fetchCouponIssues(couponId: string, params: AdminCouponIssuesPar
   if (params.pageSize) search.set('pageSize', String(params.pageSize))
   const query = search.toString()
   return apiClient.get<CursorPageResponse<AdminMemberCouponListItem>>(
-    `/v1/admin/coupons/${couponId}/issues${query ? `?${query}` : ''}`,
+    `/v1/admin/coupons/${encodeURIComponent(couponId)}/issues${query ? `?${query}` : ''}`,
   )
 }
 
@@ -133,6 +140,6 @@ export interface AdminMemberCouponHistoryResponse {
 
 export function fetchMemberCouponHistory(memberCouponId: number) {
   return apiClient.get<AdminMemberCouponHistoryResponse>(
-    `/v1/admin/member-coupons/${memberCouponId}/history`,
+    `/v1/admin/member-coupons/${encodeURIComponent(memberCouponId)}/history`,
   )
 }

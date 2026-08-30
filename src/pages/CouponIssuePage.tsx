@@ -1,5 +1,6 @@
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import { useState } from 'react'
+import { useSearchParams } from 'react-router-dom'
 import { ApiError, NetworkError } from '../api/client'
 import { fetchIssuanceStatus, issueCoupon } from '../api/coupon'
 
@@ -31,7 +32,8 @@ function describeError(error: unknown): string {
 }
 
 export default function CouponIssuePage() {
-  const [couponId, setCouponId] = useState('900001')
+  const [searchParams] = useSearchParams()
+  const [couponId, setCouponId] = useState(searchParams.get('couponId') ?? '900001')
   const queryClient = useQueryClient()
 
   const statusQuery = useQuery({

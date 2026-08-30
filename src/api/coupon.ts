@@ -47,3 +47,46 @@ export interface IssuanceStatusResponse {
 export function fetchIssuanceStatus(couponId: string) {
   return apiClient.get<IssuanceStatusResponse>(`/v1/coupons/${couponId}/issuance-status`)
 }
+
+// fm-backend CursorPageResponse<T> 그대로. nextPageToken이 없으면 마지막 페이지
+export interface CursorPageResponse<T> {
+  items: T[]
+  nextPageToken: string | null
+}
+
+export interface AdminCouponListItem {
+  couponId: number
+  name: string
+  scope: 'ORDER' | 'ITEM'
+  discountType: 'AMOUNT' | 'RATE'
+  discountValue: number
+  maxDiscountAmount: number | null
+  minOrderAmount: number
+  totalQuantity: number | null
+  issuedQuantity: number
+  issueStartAt: string | null
+  issueEndAt: string | null
+  validFrom: string
+  validTo: string
+  targetGradeId: number | null
+  isActive: boolean
+}
+
+export interface AdminCouponListParams {
+  isActive?: boolean
+  scope?: string
+  pageToken?: string
+  pageSize?: number
+}
+
+export function fetchAdminCoupons(params: AdminCouponListParams = {}) {
+  const search = new URLSearchParams()
+  if (params.isActive !== undefined) search.set('isActive', String(params.isActive))
+  if (params.scope) search.set('scope', params.scope)
+  if (params.pageToken) search.set('pageToken', params.pageToken)
+  if (params.pageSize) search.set('pageSize', String(params.pageSize))
+  const query = search.toString()
+  return apiClient.get<CursorPageResponse<AdminCouponListItem>>(
+    `/v1/admin/coupons${query ? `?${query}` : ''}`,
+  )
+}

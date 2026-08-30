@@ -1,12 +1,17 @@
 import { createBrowserRouter } from 'react-router-dom'
 import App from './App'
 import AdminCouponEventPage from './pages/AdminCouponEventPage'
+import AdminCouponListPage from './pages/AdminCouponListPage'
 import CouponIssuePage from './pages/CouponIssuePage'
 
 export const router = createBrowserRouter([
   {
     path: '/',
     element: <App />,
+  },
+  {
+    path: '/admin/coupons',
+    element: <AdminCouponListPage />,
   },
   {
     path: '/admin/coupon-events',

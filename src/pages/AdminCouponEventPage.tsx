@@ -1,5 +1,6 @@
 import { useMutation } from '@tanstack/react-query'
 import { useState } from 'react'
+import { useSearchParams } from 'react-router-dom'
 import { ApiError, NetworkError } from '../api/client'
 import {
   changeIssuePeriod,
@@ -33,7 +34,8 @@ function describeError(error: unknown): string {
 }
 
 export default function AdminCouponEventPage() {
-  const [couponId, setCouponId] = useState('900001')
+  const [searchParams] = useSearchParams()
+  const [couponId, setCouponId] = useState(searchParams.get('couponId') ?? '900001')
   const [issueStartAt, setIssueStartAt] = useState('')
   const [issueEndAt, setIssueEndAt] = useState('')
 

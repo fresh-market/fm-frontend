@@ -42,9 +42,9 @@ export default function CouponIssuePage() {
     enabled: couponId.length > 0,
   })
   const issueMutation = useMutation({
-    mutationFn: () => issueCoupon(couponId),
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['issuanceStatus', couponId] })
+    mutationFn: (targetCouponId: string) => issueCoupon(targetCouponId),
+    onSuccess: (_data, targetCouponId) => {
+      queryClient.invalidateQueries({ queryKey: ['issuanceStatus', targetCouponId] })
     },
   })
 
@@ -57,7 +57,10 @@ export default function CouponIssuePage() {
         <input
           className="w-full rounded border border-gray-300 px-3 py-2"
           value={couponId}
-          onChange={(event) => setCouponId(event.target.value)}
+          onChange={(event) => {
+            setCouponId(event.target.value)
+            issueMutation.reset()
+          }}
           inputMode="numeric"
         />
       </label>
@@ -75,7 +78,7 @@ export default function CouponIssuePage() {
       <button
         type="button"
         className="w-full rounded bg-emerald-600 px-4 py-2 text-white disabled:opacity-50"
-        onClick={() => issueMutation.mutate()}
+        onClick={() => issueMutation.mutate(couponId)}
         disabled={!couponId || issueMutation.isPending}
       >
         받기

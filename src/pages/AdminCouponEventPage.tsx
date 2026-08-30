@@ -57,7 +57,13 @@ export default function AdminCouponEventPage() {
         <input
           className="w-full rounded border border-gray-300 px-3 py-2"
           value={couponId}
-          onChange={(event) => setCouponId(event.target.value)}
+          onChange={(event) => {
+            setCouponId(event.target.value)
+            openMutation.reset()
+            closeMutation.reset()
+            periodMutation.reset()
+            consistencyMutation.reset()
+          }}
           inputMode="numeric"
         />
       </label>

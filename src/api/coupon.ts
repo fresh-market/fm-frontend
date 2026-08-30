@@ -25,3 +25,15 @@ export function closeCouponEvent(couponId: string) {
 export function changeIssuePeriod(couponId: string, request: IssuePeriodUpdateRequest) {
   return apiClient.patch<void>(`/v1/admin/coupons/${couponId}/issue-period`, request)
 }
+
+export interface ConsistencyCheckResponse {
+  issuedQuantityOnCoupon: number
+  actualIssueCount: number
+  duplicatedMembers: number
+  seqGaps: number[]
+  consistent: boolean
+}
+
+export function verifyCouponConsistency(couponId: string) {
+  return apiClient.post<ConsistencyCheckResponse>(`/v1/admin/coupons/${couponId}:verifyConsistency`)
+}

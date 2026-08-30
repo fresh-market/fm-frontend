@@ -3,6 +3,7 @@ import { useState } from 'react'
 import { useSearchParams } from 'react-router-dom'
 import { ApiError, NetworkError } from '../api/client'
 import { fetchIssuanceStatus, issueCoupon } from '../api/coupon'
+import { useDebouncedValue } from '../hooks/useDebouncedValue'
 
 // fm-backend CouponErrorCode 중 이 화면의 발급/발급현황 API가 실제로 던지는 코드만 다룬다
 const ERROR_MESSAGES: Record<string, string> = {
@@ -34,12 +35,13 @@ function describeError(error: unknown): string {
 export default function CouponIssuePage() {
   const [searchParams] = useSearchParams()
   const [couponId, setCouponId] = useState(searchParams.get('couponId') ?? '900001')
+  const debouncedCouponId = useDebouncedValue(couponId, 300)
   const queryClient = useQueryClient()
 
   const statusQuery = useQuery({
-    queryKey: ['issuanceStatus', couponId],
-    queryFn: ({ signal }) => fetchIssuanceStatus(couponId, signal),
-    enabled: couponId.length > 0,
+    queryKey: ['issuanceStatus', debouncedCouponId],
+    queryFn: ({ signal }) => fetchIssuanceStatus(debouncedCouponId, signal),
+    enabled: debouncedCouponId.length > 0,
   })
   const issueMutation = useMutation({
     mutationFn: (targetCouponId: string) => issueCoupon(targetCouponId),

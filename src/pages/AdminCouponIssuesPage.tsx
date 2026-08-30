@@ -7,6 +7,7 @@ import {
   fetchMemberCouponHistory,
   type MemberCouponStatus,
 } from '../api/coupon'
+import { useDebouncedValue } from '../hooks/useDebouncedValue'
 
 const STATUS_LABELS: Record<MemberCouponStatus, string> = {
   ISSUED: '발급',
@@ -31,15 +32,16 @@ function describeError(error: unknown): string {
 export default function AdminCouponIssuesPage() {
   const { couponId: couponIdParam } = useParams<{ couponId: string }>()
   const [couponId, setCouponId] = useState(couponIdParam ?? '900001')
+  const debouncedCouponId = useDebouncedValue(couponId, 300)
   const [statusFilter, setStatusFilter] = useState<MemberCouponStatus | undefined>(undefined)
   const [pageToken, setPageToken] = useState<string | undefined>(undefined)
   const [selectedMemberCouponId, setSelectedMemberCouponId] = useState<number | null>(null)
 
   const issuesQuery = useQuery({
-    queryKey: ['couponIssues', couponId, statusFilter, pageToken],
+    queryKey: ['couponIssues', debouncedCouponId, statusFilter, pageToken],
     queryFn: ({ signal }) =>
-      fetchCouponIssues(couponId, { status: statusFilter, pageToken }, signal),
-    enabled: couponId.length > 0,
+      fetchCouponIssues(debouncedCouponId, { status: statusFilter, pageToken }, signal),
+    enabled: debouncedCouponId.length > 0,
   })
   const historyQuery = useQuery({
     queryKey: ['memberCouponHistory', selectedMemberCouponId],

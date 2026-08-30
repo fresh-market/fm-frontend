@@ -5,6 +5,15 @@ export interface IssuePeriodUpdateRequest {
   issueEndAt: string
 }
 
+export interface CouponIssueResponse {
+  issueSeq: number
+  alreadyIssued: boolean
+}
+
+export function issueCoupon(couponId: string) {
+  return apiClient.post<CouponIssueResponse>(`/v1/coupons/${couponId}/issues`)
+}
+
 export function openCouponEvent(couponId: string) {
   return apiClient.post<void>(`/v1/admin/coupons/${couponId}/event:open`)
 }

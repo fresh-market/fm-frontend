@@ -101,12 +101,20 @@ export default function AdminCouponListPage() {
               <p className="text-gray-600">
                 발급기간 {coupon.issueStartAt ?? '제한없음'} ~ {coupon.issueEndAt ?? '제한없음'}
               </p>
-              <Link
-                className="inline-block text-blue-600 underline"
-                to={`/admin/coupon-events?couponId=${coupon.couponId}`}
-              >
-                이벤트 제어로 이동
-              </Link>
+              <div className="flex gap-3">
+                <Link
+                  className="text-blue-600 underline"
+                  to={`/admin/coupon-events?couponId=${coupon.couponId}`}
+                >
+                  이벤트 제어로 이동
+                </Link>
+                <Link
+                  className="text-blue-600 underline"
+                  to={`/admin/coupons/${coupon.couponId}/issues`}
+                >
+                  발급 목록 보기
+                </Link>
+              </div>
             </div>
           ))}
 

@@ -90,3 +90,49 @@ export function fetchAdminCoupons(params: AdminCouponListParams = {}) {
     `/v1/admin/coupons${query ? `?${query}` : ''}`,
   )
 }
+
+export type MemberCouponStatus = 'ISSUED' | 'USED' | 'EXPIRED' | 'CANCELED'
+
+export interface AdminMemberCouponListItem {
+  memberCouponId: number
+  memberId: number
+  issueSeq: number | null
+  status: MemberCouponStatus
+  issuedAt: string
+  usedAt: string | null
+}
+
+export interface AdminCouponIssuesParams {
+  status?: MemberCouponStatus
+  pageToken?: string
+  pageSize?: number
+}
+
+export function fetchCouponIssues(couponId: string, params: AdminCouponIssuesParams = {}) {
+  const search = new URLSearchParams()
+  if (params.status) search.set('status', params.status)
+  if (params.pageToken) search.set('pageToken', params.pageToken)
+  if (params.pageSize) search.set('pageSize', String(params.pageSize))
+  const query = search.toString()
+  return apiClient.get<CursorPageResponse<AdminMemberCouponListItem>>(
+    `/v1/admin/coupons/${couponId}/issues${query ? `?${query}` : ''}`,
+  )
+}
+
+export interface AdminMemberCouponHistoryEntry {
+  fromStatus: string | null
+  toStatus: string
+  reason: string | null
+  changedBy: number | null
+  createdAt: string
+}
+
+export interface AdminMemberCouponHistoryResponse {
+  history: AdminMemberCouponHistoryEntry[]
+}
+
+export function fetchMemberCouponHistory(memberCouponId: number) {
+  return apiClient.get<AdminMemberCouponHistoryResponse>(
+    `/v1/admin/member-coupons/${memberCouponId}/history`,
+  )
+}

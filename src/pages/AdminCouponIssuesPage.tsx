@@ -37,12 +37,13 @@ export default function AdminCouponIssuesPage() {
 
   const issuesQuery = useQuery({
     queryKey: ['couponIssues', couponId, statusFilter, pageToken],
-    queryFn: () => fetchCouponIssues(couponId, { status: statusFilter, pageToken }),
+    queryFn: ({ signal }) =>
+      fetchCouponIssues(couponId, { status: statusFilter, pageToken }, signal),
     enabled: couponId.length > 0,
   })
   const historyQuery = useQuery({
     queryKey: ['memberCouponHistory', selectedMemberCouponId],
-    queryFn: () => fetchMemberCouponHistory(selectedMemberCouponId as number),
+    queryFn: ({ signal }) => fetchMemberCouponHistory(selectedMemberCouponId as number, signal),
     enabled: selectedMemberCouponId !== null,
   })
 

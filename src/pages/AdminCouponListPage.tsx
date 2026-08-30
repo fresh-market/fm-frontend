@@ -24,8 +24,8 @@ export default function AdminCouponListPage() {
 
   const query = useQuery({
     queryKey: ['adminCoupons', isActiveFilter, scopeFilter, pageToken],
-    queryFn: () =>
-      fetchAdminCoupons({ isActive: isActiveFilter, scope: scopeFilter, pageToken }),
+    queryFn: ({ signal }) =>
+      fetchAdminCoupons({ isActive: isActiveFilter, scope: scopeFilter, pageToken }, signal),
   })
 
   function resetToFirstPage() {

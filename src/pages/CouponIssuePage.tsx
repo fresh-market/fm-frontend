@@ -38,7 +38,7 @@ export default function CouponIssuePage() {
 
   const statusQuery = useQuery({
     queryKey: ['issuanceStatus', couponId],
-    queryFn: () => fetchIssuanceStatus(couponId),
+    queryFn: ({ signal }) => fetchIssuanceStatus(couponId, signal),
     enabled: couponId.length > 0,
   })
   const issueMutation = useMutation({

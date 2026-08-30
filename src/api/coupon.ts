@@ -49,9 +49,10 @@ export interface IssuanceStatusResponse {
   remaining: number
 }
 
-export function fetchIssuanceStatus(couponId: string) {
+export function fetchIssuanceStatus(couponId: string, signal?: AbortSignal) {
   return apiClient.get<IssuanceStatusResponse>(
     `/v1/coupons/${encodeURIComponent(couponId)}/issuance-status`,
+    { signal },
   )
 }
 
@@ -86,7 +87,7 @@ export interface AdminCouponListParams {
   pageSize?: number
 }
 
-export function fetchAdminCoupons(params: AdminCouponListParams = {}) {
+export function fetchAdminCoupons(params: AdminCouponListParams = {}, signal?: AbortSignal) {
   const search = new URLSearchParams()
   if (params.isActive !== undefined) search.set('isActive', String(params.isActive))
   if (params.scope) search.set('scope', params.scope)
@@ -95,6 +96,7 @@ export function fetchAdminCoupons(params: AdminCouponListParams = {}) {
   const query = search.toString()
   return apiClient.get<CursorPageResponse<AdminCouponListItem>>(
     `/v1/admin/coupons${query ? `?${query}` : ''}`,
+    { signal },
   )
 }
 
@@ -115,7 +117,11 @@ export interface AdminCouponIssuesParams {
   pageSize?: number
 }
 
-export function fetchCouponIssues(couponId: string, params: AdminCouponIssuesParams = {}) {
+export function fetchCouponIssues(
+  couponId: string,
+  params: AdminCouponIssuesParams = {},
+  signal?: AbortSignal,
+) {
   const search = new URLSearchParams()
   if (params.status) search.set('status', params.status)
   if (params.pageToken) search.set('pageToken', params.pageToken)
@@ -123,6 +129,7 @@ export function fetchCouponIssues(couponId: string, params: AdminCouponIssuesPar
   const query = search.toString()
   return apiClient.get<CursorPageResponse<AdminMemberCouponListItem>>(
     `/v1/admin/coupons/${encodeURIComponent(couponId)}/issues${query ? `?${query}` : ''}`,
+    { signal },
   )
 }
 
@@ -138,8 +145,9 @@ export interface AdminMemberCouponHistoryResponse {
   history: AdminMemberCouponHistoryEntry[]
 }
 
-export function fetchMemberCouponHistory(memberCouponId: number) {
+export function fetchMemberCouponHistory(memberCouponId: number, signal?: AbortSignal) {
   return apiClient.get<AdminMemberCouponHistoryResponse>(
     `/v1/admin/member-coupons/${encodeURIComponent(memberCouponId)}/history`,
+    { signal },
   )
 }

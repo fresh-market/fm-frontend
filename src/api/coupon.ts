@@ -37,3 +37,13 @@ export interface ConsistencyCheckResponse {
 export function verifyCouponConsistency(couponId: string) {
   return apiClient.post<ConsistencyCheckResponse>(`/v1/admin/coupons/${couponId}:verifyConsistency`)
 }
+
+export interface IssuanceStatusResponse {
+  totalQuantity: number
+  issuedQuantity: number
+  remaining: number
+}
+
+export function fetchIssuanceStatus(couponId: string) {
+  return apiClient.get<IssuanceStatusResponse>(`/v1/coupons/${couponId}/issuance-status`)
+}

@@ -1,9 +1,9 @@
-import { useMutation } from '@tanstack/react-query'
+import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import { useState } from 'react'
 import { ApiError, NetworkError } from '../api/client'
-import { issueCoupon } from '../api/coupon'
+import { fetchIssuanceStatus, issueCoupon } from '../api/coupon'
 
-// fm-backend CouponErrorCode 중 이 화면의 발급 API가 실제로 던지는 코드만 다룬다
+// fm-backend CouponErrorCode 중 이 화면의 발급/발급현황 API가 실제로 던지는 코드만 다룬다
 const ERROR_MESSAGES: Record<string, string> = {
   'COUPON-001': '없는 쿠폰입니다.',
   'COUPON-002': '지금은 발급받을 수 없는 쿠폰입니다.',
@@ -11,6 +11,7 @@ const ERROR_MESSAGES: Record<string, string> = {
   'COUPON-004': '선착순 발급 대상 쿠폰이 아닙니다.',
   'COUPON-005': '쿠폰이 모두 소진되었습니다.',
   'COUPON-006': '요청이 몰려 처리하지 못했습니다. 잠시 후 다시 시도해주세요.',
+  'COUPON-012': '지금은 발급 현황을 확인할 수 없습니다. 잠시 후 다시 시도해주세요.',
 }
 
 function describeError(error: unknown): string {
@@ -31,8 +32,19 @@ function describeError(error: unknown): string {
 
 export default function CouponIssuePage() {
   const [couponId, setCouponId] = useState('900001')
+  const queryClient = useQueryClient()
 
-  const issueMutation = useMutation({ mutationFn: () => issueCoupon(couponId) })
+  const statusQuery = useQuery({
+    queryKey: ['issuanceStatus', couponId],
+    queryFn: () => fetchIssuanceStatus(couponId),
+    enabled: couponId.length > 0,
+  })
+  const issueMutation = useMutation({
+    mutationFn: () => issueCoupon(couponId),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['issuanceStatus', couponId] })
+    },
+  })
 
   return (
     <div className="mx-auto max-w-sm space-y-6 p-6">
@@ -47,6 +59,16 @@ export default function CouponIssuePage() {
           inputMode="numeric"
         />
       </label>
+
+      {statusQuery.isSuccess && (
+        <p className="text-sm text-gray-600">
+          총 {statusQuery.data.totalQuantity}장 중 {statusQuery.data.issuedQuantity}장 발급 ·{' '}
+          <span className="font-medium text-gray-900">{statusQuery.data.remaining}장 남음</span>
+        </p>
+      )}
+      {statusQuery.isError && (
+        <p className="text-sm text-rose-700">{describeError(statusQuery.error)}</p>
+      )}
 
       <button
         type="button"

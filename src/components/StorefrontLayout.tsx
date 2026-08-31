@@ -65,7 +65,7 @@ export default function StorefrontLayout({ children }: { children: ReactNode }) 
               )}
               <Link
                 to="/admin/login"
-                className="rounded-full bg-slate-800 px-3 py-1 text-xs font-semibold tracking-wide text-white transition-colors hover:bg-slate-700"
+                className="rounded-full bg-slate-800 px-3.5 py-1.5 text-sm font-semibold tracking-wide text-white transition-colors hover:bg-slate-700"
               >
                 관리자
               </Link>

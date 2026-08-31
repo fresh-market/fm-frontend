@@ -6,9 +6,9 @@ export default function StorefrontLayout({ children }: { children: ReactNode }) 
   return (
     <div className="flex min-h-screen flex-col bg-brand-50">
       <header className="sticky top-0 z-10 border-b border-brand-100 bg-white/90 backdrop-blur">
-        <div className="mx-auto flex max-w-5xl items-center justify-between px-6 py-3">
+        <div className="mx-auto flex max-w-5xl items-center justify-between px-6 py-2.5">
           <Link to="/" className="flex items-center">
-            <LogoMark className="h-8" />
+            <LogoMark className="h-14" />
           </Link>
           <nav className="flex items-center gap-5 text-sm">
             <Link to="/coupons/issue" className="font-medium text-brand-700 hover:text-brand-800">

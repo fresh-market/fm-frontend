@@ -10,7 +10,6 @@ import {
   verifyCouponConsistency,
 } from '../api/coupon'
 import AdminLayout from '../components/AdminLayout'
-import { Badge } from '../components/Badge'
 
 // fm-backend CouponErrorCode 중 이 화면의 세 API(open/close/issue-period)가 실제로 던지는 코드만 다룬다
 const ERROR_MESSAGES: Record<string, string> = {
@@ -42,6 +41,28 @@ function SectionCard({ title, children }: { title: string; children: ReactNode }
       <h2 className="mb-4 font-semibold text-gray-800">{title}</h2>
       {children}
     </section>
+  )
+}
+
+function CheckRow({ ok, label, detail }: { ok: boolean; label: string; detail: string }) {
+  return (
+    <div
+      className={`flex items-center justify-between gap-3 rounded-lg border px-3 py-2.5 text-sm ${
+        ok ? 'border-brand-100 bg-brand-50' : 'border-rose-200 bg-rose-50'
+      }`}
+    >
+      <span className="flex items-center gap-2">
+        <span
+          className={`flex h-5 w-5 shrink-0 items-center justify-center rounded-full text-xs font-bold text-white ${
+            ok ? 'bg-brand-600' : 'bg-rose-600'
+          }`}
+        >
+          {ok ? '✓' : '✕'}
+        </span>
+        <span className={`font-medium ${ok ? 'text-brand-800' : 'text-rose-800'}`}>{label}</span>
+      </span>
+      <span className={ok ? 'text-brand-700' : 'text-rose-700'}>{detail}</span>
+    </div>
   )
 }
 
@@ -170,30 +191,48 @@ export default function AdminCouponEventPage() {
             {consistencyMutation.isPending ? '검증 중...' : '지금 검증하기'}
           </button>
           {consistencyMutation.isSuccess && (
-            <div className="mt-4 space-y-2 rounded-lg bg-gray-50 p-4 text-sm">
-              <Badge tone={consistencyMutation.data.consistent ? 'green' : 'rose'}>
-                {consistencyMutation.data.consistent ? '정합성 이상 없음' : '정합성 어긋남 발견'}
-              </Badge>
-              <dl className="grid grid-cols-2 gap-y-1 pt-1 text-gray-600">
-                <dt>쿠폰이 기억하는 발급 수</dt>
-                <dd className="text-right font-medium text-gray-900">
-                  {consistencyMutation.data.issuedQuantityOnCoupon}
-                </dd>
-                <dt>실제 발급 행 수</dt>
-                <dd className="text-right font-medium text-gray-900">
-                  {consistencyMutation.data.actualIssueCount}
-                </dd>
-                <dt>중복 발급 회원 수</dt>
-                <dd className="text-right font-medium text-gray-900">
-                  {consistencyMutation.data.duplicatedMembers}
-                </dd>
-                <dt>비어있는 순번</dt>
-                <dd className="text-right font-medium text-gray-900">
-                  {consistencyMutation.data.seqGaps.length === 0
-                    ? '없음'
-                    : consistencyMutation.data.seqGaps.join(', ')}
-                </dd>
-              </dl>
+            <div className="mt-4 space-y-3">
+              <div
+                className={`flex items-center gap-3 rounded-lg px-4 py-3 ${
+                  consistencyMutation.data.consistent
+                    ? 'bg-brand-50 text-brand-800'
+                    : 'bg-rose-50 text-rose-800'
+                }`}
+              >
+                <span
+                  className={`flex h-8 w-8 shrink-0 items-center justify-center rounded-full text-base font-bold text-white ${
+                    consistencyMutation.data.consistent ? 'bg-brand-600' : 'bg-rose-600'
+                  }`}
+                >
+                  {consistencyMutation.data.consistent ? '✓' : '!'}
+                </span>
+                <span className="font-semibold">
+                  {consistencyMutation.data.consistent ? '정합성 이상 없음' : '정합성 어긋남 발견'}
+                </span>
+              </div>
+
+              <CheckRow
+                ok={
+                  consistencyMutation.data.issuedQuantityOnCoupon ===
+                  consistencyMutation.data.actualIssueCount
+                }
+                label="재고 카운터 일치"
+                detail={`쿠폰 기억 ${consistencyMutation.data.issuedQuantityOnCoupon}장 · 실제 ${consistencyMutation.data.actualIssueCount}건`}
+              />
+              <CheckRow
+                ok={consistencyMutation.data.duplicatedMembers === 0}
+                label="1인 1매 (중복 발급 없음)"
+                detail={`${consistencyMutation.data.duplicatedMembers}명`}
+              />
+              <CheckRow
+                ok={consistencyMutation.data.seqGaps.length === 0}
+                label="발급 순번 연속성"
+                detail={
+                  consistencyMutation.data.seqGaps.length === 0
+                    ? '빈 순번 없음'
+                    : `빈 순번 ${consistencyMutation.data.seqGaps.length}개: ${consistencyMutation.data.seqGaps.join(', ')}`
+                }
+              />
             </div>
           )}
           {consistencyMutation.isError && (

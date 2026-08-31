@@ -13,8 +13,9 @@ function App() {
           <br className="hidden sm:block" /> 가장 합리적인 가격에
         </h1>
         <p className="max-w-xl text-gray-500">
-          신선식품 자사몰 Fresh Market입니다. 한정 수량 쿠폰을 선착순으로 발급하고,
-          발급 현황도 실시간으로 투명하게 공개합니다.
+          신선식품 자사몰 Fresh Market입니다.
+          <br />
+          한정 수량 쿠폰을 선착순으로 발급하고, 발급 현황도 실시간으로 투명하게 공개합니다.
         </p>
         <Link
           to="/coupons/issue"

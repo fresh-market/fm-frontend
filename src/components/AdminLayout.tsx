@@ -1,0 +1,84 @@
+import { useMutation } from '@tanstack/react-query'
+import type { ReactNode } from 'react'
+import { useState } from 'react'
+import { Link, NavLink, useNavigate } from 'react-router-dom'
+import { adminLogout, clearAdminSession, readAdminSession } from '../api/auth'
+import { LogoMark } from './Logo'
+
+const ADMIN_NAV = [
+  { to: '/admin/coupons', label: '쿠폰 목록' },
+  { to: '/admin/coupon-events', label: '이벤트 제어' },
+]
+
+export default function AdminLayout({ children }: { children: ReactNode }) {
+  const navigate = useNavigate()
+  const [session, setSession] = useState(() => readAdminSession())
+  const logoutMutation = useMutation({
+    mutationFn: adminLogout,
+    onSuccess: () => {
+      clearAdminSession()
+      setSession(null)
+      navigate('/admin/login')
+    },
+  })
+
+  return (
+    <div className="flex min-h-screen flex-col bg-slate-50">
+      <header className="border-b border-slate-200 bg-white">
+        <div className="mx-auto flex max-w-5xl items-center justify-between px-6 py-2.5">
+          <div className="flex items-center gap-3">
+            <Link to="/">
+              <LogoMark className="h-11" />
+            </Link>
+            <span className="rounded-full bg-slate-800 px-2.5 py-0.5 text-[11px] font-semibold tracking-wide text-white">
+              BACK OFFICE
+            </span>
+          </div>
+          <div className="flex items-center gap-4 text-sm">
+            <Link to="/coupons/issue" className="text-gray-400 hover:text-gray-600">
+              쇼핑몰로 이동
+            </Link>
+            {session ? (
+              <button
+                type="button"
+                className="text-gray-400 hover:text-gray-600 disabled:cursor-not-allowed disabled:opacity-50"
+                onClick={() => logoutMutation.mutate()}
+                disabled={logoutMutation.isPending}
+              >
+                {logoutMutation.isPending ? '로그아웃 중...' : `${session.name}님 로그아웃`}
+              </button>
+            ) : (
+              <Link to="/admin/login" className="text-gray-400 hover:text-gray-600">
+                로그인
+              </Link>
+            )}
+          </div>
+        </div>
+        {logoutMutation.isError && (
+          <p className="mx-auto max-w-5xl px-6 pb-2 text-right text-xs text-rose-600">
+            로그아웃에 실패했습니다. 잠시 후 다시 시도해주세요.
+          </p>
+        )}
+        <nav className="mx-auto flex max-w-5xl gap-1 px-6">
+          {ADMIN_NAV.map((item) => (
+            <NavLink
+              key={item.to}
+              to={item.to}
+              className={({ isActive }) =>
+                `border-b-2 px-3 py-2.5 text-sm font-medium transition-colors ${
+                  isActive
+                    ? 'border-brand-600 text-brand-700'
+                    : 'border-transparent text-gray-500 hover:border-slate-200 hover:text-gray-700'
+                }`
+              }
+            >
+              {item.label}
+            </NavLink>
+          ))}
+        </nav>
+      </header>
+
+      <main className="mx-auto w-full max-w-5xl flex-1 px-6 py-8">{children}</main>
+    </div>
+  )
+}

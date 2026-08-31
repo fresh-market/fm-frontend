@@ -1,7 +1,8 @@
 import { useMutation } from '@tanstack/react-query'
 import type { ReactNode } from 'react'
+import { useState } from 'react'
 import { Link, NavLink, useNavigate } from 'react-router-dom'
-import { adminLogout } from '../api/auth'
+import { adminLogout, clearAdminSession, readAdminSession } from '../api/auth'
 import { LogoMark } from './Logo'
 
 const ADMIN_NAV = [
@@ -11,9 +12,14 @@ const ADMIN_NAV = [
 
 export default function AdminLayout({ children }: { children: ReactNode }) {
   const navigate = useNavigate()
+  const [session, setSession] = useState(() => readAdminSession())
   const logoutMutation = useMutation({
     mutationFn: adminLogout,
-    onSuccess: () => navigate('/admin/login'),
+    onSuccess: () => {
+      clearAdminSession()
+      setSession(null)
+      navigate('/admin/login')
+    },
   })
 
   return (
@@ -32,17 +38,20 @@ export default function AdminLayout({ children }: { children: ReactNode }) {
             <Link to="/coupons/issue" className="text-gray-400 hover:text-gray-600">
               쇼핑몰로 이동
             </Link>
-            <Link to="/admin/login" className="text-gray-400 hover:text-gray-600">
-              로그인
-            </Link>
-            <button
-              type="button"
-              className="text-gray-400 hover:text-gray-600 disabled:cursor-not-allowed disabled:opacity-50"
-              onClick={() => logoutMutation.mutate()}
-              disabled={logoutMutation.isPending}
-            >
-              로그아웃
-            </button>
+            {session ? (
+              <button
+                type="button"
+                className="text-gray-400 hover:text-gray-600 disabled:cursor-not-allowed disabled:opacity-50"
+                onClick={() => logoutMutation.mutate()}
+                disabled={logoutMutation.isPending}
+              >
+                {logoutMutation.isPending ? '로그아웃 중...' : `${session.name}님 로그아웃`}
+              </button>
+            ) : (
+              <Link to="/admin/login" className="text-gray-400 hover:text-gray-600">
+                로그인
+              </Link>
+            )}
           </div>
         </div>
         {logoutMutation.isError && (

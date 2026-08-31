@@ -1,4 +1,4 @@
-import { useMutation } from '@tanstack/react-query'
+import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import type { ReactNode } from 'react'
 import { useState } from 'react'
 import { useSearchParams } from 'react-router-dom'
@@ -6,6 +6,7 @@ import { ApiError, NetworkError } from '../api/client'
 import {
   changeIssuePeriod,
   closeCouponEvent,
+  fetchAdminCoupons,
   openCouponEvent,
   verifyCouponConsistency,
 } from '../api/coupon'
@@ -58,13 +59,37 @@ interface BulkOpenResult {
 
 export default function AdminCouponEventPage() {
   const [searchParams] = useSearchParams()
-  const [couponId, setCouponId] = useState(searchParams.get('couponId') ?? '900001')
+  const [couponId, setCouponId] = useState(searchParams.get('couponId') ?? '')
   const [issueStartAt, setIssueStartAt] = useState('')
   const [issueEndAt, setIssueEndAt] = useState('')
   const [selectedProductIds, setSelectedProductIds] = useState<Set<number>>(new Set())
+  const queryClient = useQueryClient()
 
-  const openMutation = useMutation({ mutationFn: () => openCouponEvent(couponId) })
-  const closeMutation = useMutation({ mutationFn: () => closeCouponEvent(couponId) })
+  // 이미 열려 있는 쿠폰을 다시 열기 대상으로 잡지 않으려고 활성 쿠폰 목록을 먼저 본다.
+  // 백엔드 event:open 자체는 이미 열린 쿠폰에 대해 아무 것도 하지 않고 조용히 끝나 안전하지만
+  // (CouponEventService.open의 activateIfInactive), 관리자 입장에서는 "이미 열림"을 미리 알아야
+  // 굳이 다시 누를 이유가 없다는 게 명확해진다.
+  const activeCouponsQuery = useQuery({
+    queryKey: ['activeCouponIds'],
+    queryFn: () => fetchAdminCoupons({ isActive: true, pageSize: 100 }),
+  })
+  const activeCouponIds = new Set(
+    (activeCouponsQuery.data?.items ?? []).map((coupon) => String(coupon.couponId)),
+  )
+  const openableProducts = LOW_STOCK_PRODUCTS.filter((product) => !activeCouponIds.has(product.couponId))
+
+  function invalidateActiveCoupons() {
+    queryClient.invalidateQueries({ queryKey: ['activeCouponIds'] })
+  }
+
+  const openMutation = useMutation({
+    mutationFn: () => openCouponEvent(couponId),
+    onSuccess: invalidateActiveCoupons,
+  })
+  const closeMutation = useMutation({
+    mutationFn: () => closeCouponEvent(couponId),
+    onSuccess: invalidateActiveCoupons,
+  })
   const periodMutation = useMutation({
     mutationFn: () => changeIssuePeriod(couponId, { issueStartAt, issueEndAt }),
   })
@@ -85,6 +110,10 @@ export default function AdminCouponEventPage() {
         }
       })
     },
+    onSuccess: () => {
+      invalidateActiveCoupons()
+      setSelectedProductIds(new Set())
+    },
   })
 
   function toggleProduct(productId: number) {
@@ -98,9 +127,9 @@ export default function AdminCouponEventPage() {
 
   function toggleAllProducts() {
     setSelectedProductIds((current) =>
-      current.size === LOW_STOCK_PRODUCTS.length
+      current.size === openableProducts.length
         ? new Set()
-        : new Set(LOW_STOCK_PRODUCTS.map((product) => product.id)),
+        : new Set(openableProducts.map((product) => product.id)),
     )
   }
 
@@ -248,32 +277,53 @@ export default function AdminCouponEventPage() {
             재고 임박 상품을 선택해 각 상품에 연결된 쿠폰의 이벤트를 한 번에 엽니다.
           </p>
 
+          {activeCouponsQuery.isError && (
+            <p className="mb-3 text-sm text-rose-700">
+              이미 열린 쿠폰 목록을 확인하지 못했습니다 — 이미 열려 있는 이벤트를 다시 선택할 수도
+              있습니다({describeError(activeCouponsQuery.error)}).
+            </p>
+          )}
+
           <label className="mb-2 flex items-center gap-2 border-b border-gray-100 pb-2 text-sm font-medium text-gray-700">
             <input
               type="checkbox"
               className="h-4 w-4 rounded border-gray-300 text-brand-600 focus:ring-brand-500"
-              checked={selectedProductIds.size === LOW_STOCK_PRODUCTS.length}
+              checked={openableProducts.length > 0 && selectedProductIds.size === openableProducts.length}
               onChange={toggleAllProducts}
+              disabled={openableProducts.length === 0}
             />
-            전체 선택 ({selectedProductIds.size}/{LOW_STOCK_PRODUCTS.length})
+            전체 선택 ({selectedProductIds.size}/{openableProducts.length})
           </label>
 
           <ul className="max-h-72 space-y-1 overflow-y-auto">
-            {LOW_STOCK_PRODUCTS.map((product) => (
-              <li key={product.id}>
-                <label className="flex cursor-pointer items-center gap-3 rounded-lg px-2 py-1.5 text-sm hover:bg-gray-50">
-                  <input
-                    type="checkbox"
-                    className="h-4 w-4 rounded border-gray-300 text-brand-600 focus:ring-brand-500"
-                    checked={selectedProductIds.has(product.id)}
-                    onChange={() => toggleProduct(product.id)}
-                  />
-                  <span className="flex-1 text-gray-800">{product.name}</span>
-                  <span className="text-xs text-gray-400">{product.category}</span>
-                  <span className="text-xs tabular-nums text-gray-400">쿠폰 {product.couponId}</span>
-                </label>
-              </li>
-            ))}
+            {LOW_STOCK_PRODUCTS.map((product) => {
+              const alreadyOpen = activeCouponIds.has(product.couponId)
+              return (
+                <li key={product.id}>
+                  <label
+                    className={`flex items-center gap-3 rounded-lg px-2 py-1.5 text-sm ${
+                      alreadyOpen ? 'cursor-not-allowed opacity-50' : 'cursor-pointer hover:bg-gray-50'
+                    }`}
+                  >
+                    <input
+                      type="checkbox"
+                      className="h-4 w-4 rounded border-gray-300 text-brand-600 focus:ring-brand-500"
+                      checked={selectedProductIds.has(product.id)}
+                      onChange={() => toggleProduct(product.id)}
+                      disabled={alreadyOpen}
+                    />
+                    <span className="flex-1 text-gray-800">{product.name}</span>
+                    <span className="text-xs text-gray-400">{product.category}</span>
+                    <span className="text-xs tabular-nums text-gray-400">쿠폰 {product.couponId}</span>
+                    {alreadyOpen && (
+                      <span className="rounded-full bg-brand-100 px-2 py-0.5 text-xs font-medium text-brand-700">
+                        이미 열림
+                      </span>
+                    )}
+                  </label>
+                </li>
+              )
+            })}
           </ul>
 
           <button
@@ -281,7 +331,7 @@ export default function AdminCouponEventPage() {
             className="mt-4 rounded-lg bg-brand-600 px-4 py-2 text-sm font-semibold text-white transition-colors hover:bg-brand-700 disabled:cursor-not-allowed disabled:opacity-50"
             onClick={() =>
               bulkOpenMutation.mutate(
-                LOW_STOCK_PRODUCTS.filter((product) => selectedProductIds.has(product.id)),
+                openableProducts.filter((product) => selectedProductIds.has(product.id)),
               )
             }
             disabled={selectedProductIds.size === 0 || bulkOpenMutation.isPending}

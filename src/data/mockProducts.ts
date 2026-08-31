@@ -16,8 +16,10 @@ export interface Product {
   imageUrl: string
   basePrice: number
   stockLabel: '재고 충분' | '재고 임박' | '품절'
-  // 상품-쿠폰 연결 API가 없어 목데이터에서 임시로 붙인 값. 900001만 fm-backend 시드에 실제로 있고
-  // 나머지는 존재하지 않는 쿠폰이라, 실제 백엔드로 이벤트 열기를 호출하면 900001 외엔 COUPON-001로 실패한다.
+  // 상품-쿠폰 연결 API가 없어 목데이터에서 임시로 붙인 값. 재고 임박 상품 10개(couponId
+  // 900002/900003/900010/900011/900018/900019/900026/900027/900034/900035)만 로컬 개발 DB에
+  // 직접 심어뒀고(데모용, Flyway 아님), 나머지는 존재하지 않는 쿠폰이라 이벤트 열기를 호출하면
+  // COUPON-001로 실패한다.
   couponId: string
   options: ProductOption[]
 }

@@ -35,6 +35,9 @@ export default function StorefrontLayout({ children }: { children: ReactNode }) 
             <Link to="/coupons/issue" className="font-medium text-brand-700 hover:text-brand-800">
               쿠폰 받기
             </Link>
+            <span className="cursor-default text-gray-300" aria-disabled="true">
+              상품 조회
+            </span>
             <div className="flex items-center gap-4 border-l border-gray-200 pl-5">
               {profileQuery.isSuccess ? (
                 <button

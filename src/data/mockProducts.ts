@@ -16,6 +16,9 @@ export interface Product {
   imageUrl: string
   basePrice: number
   stockLabel: '재고 충분' | '재고 임박' | '품절'
+  // 상품-쿠폰 연결 API가 없어 목데이터에서 임시로 붙인 값. 900001만 fm-backend 시드에 실제로 있고
+  // 나머지는 존재하지 않는 쿠폰이라, 실제 백엔드로 이벤트 열기를 호출하면 900001 외엔 COUPON-001로 실패한다.
+  couponId: string
   options: ProductOption[]
 }
 
@@ -119,8 +122,14 @@ export const MOCK_PRODUCTS: Product[] = CATEGORY_SEEDS.flatMap((seed) =>
     imageUrl: '',
     basePrice: item.basePrice,
     stockLabel: buildStockLabel(index),
+    couponId: '',
     options: item.options,
   })),
-).map((product, index) => ({ ...product, id: index + 1, imageUrl: `/products/${index + 1}.jpg` }))
+).map((product, index) => ({
+  ...product,
+  id: index + 1,
+  imageUrl: `/products/${index + 1}.jpg`,
+  couponId: String(900001 + index),
+}))
 
 export const PRODUCT_CATEGORIES = CATEGORY_SEEDS.map((seed) => seed.category)

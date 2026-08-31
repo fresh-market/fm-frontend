@@ -277,6 +277,11 @@ export default function AdminCouponEventPage() {
             재고 임박 상품을 선택해 각 상품에 연결된 쿠폰의 이벤트를 한 번에 엽니다.
           </p>
 
+          {activeCouponsQuery.isPending && (
+            <p className="mb-3 text-sm text-gray-400">
+              이미 열린 쿠폰이 있는지 확인하는 중입니다 — 확인이 끝나야 선택할 수 있습니다...
+            </p>
+          )}
           {activeCouponsQuery.isError && (
             <p className="mb-3 text-sm text-rose-700">
               이미 열린 쿠폰 목록을 확인하지 못했습니다 — 이미 열려 있는 이벤트를 다시 선택할 수도
@@ -290,7 +295,7 @@ export default function AdminCouponEventPage() {
               className="h-4 w-4 rounded border-gray-300 text-brand-600 focus:ring-brand-500"
               checked={openableProducts.length > 0 && selectedProductIds.size === openableProducts.length}
               onChange={toggleAllProducts}
-              disabled={openableProducts.length === 0}
+              disabled={activeCouponsQuery.isPending || openableProducts.length === 0}
             />
             전체 선택 ({selectedProductIds.size}/{openableProducts.length})
           </label>
@@ -298,11 +303,12 @@ export default function AdminCouponEventPage() {
           <ul className="max-h-72 space-y-1 overflow-y-auto">
             {LOW_STOCK_PRODUCTS.map((product) => {
               const alreadyOpen = activeCouponIds.has(product.couponId)
+              const disabled = activeCouponsQuery.isPending || alreadyOpen
               return (
                 <li key={product.id}>
                   <label
                     className={`flex items-center gap-3 rounded-lg px-2 py-1.5 text-sm ${
-                      alreadyOpen ? 'cursor-not-allowed opacity-50' : 'cursor-pointer hover:bg-gray-50'
+                      disabled ? 'cursor-not-allowed opacity-50' : 'cursor-pointer hover:bg-gray-50'
                     }`}
                   >
                     <input
@@ -310,7 +316,7 @@ export default function AdminCouponEventPage() {
                       className="h-4 w-4 rounded border-gray-300 text-brand-600 focus:ring-brand-500"
                       checked={selectedProductIds.has(product.id)}
                       onChange={() => toggleProduct(product.id)}
-                      disabled={alreadyOpen}
+                      disabled={disabled}
                     />
                     <span className="flex-1 text-gray-800">{product.name}</span>
                     <span className="text-xs text-gray-400">{product.category}</span>
@@ -334,7 +340,9 @@ export default function AdminCouponEventPage() {
                 openableProducts.filter((product) => selectedProductIds.has(product.id)),
               )
             }
-            disabled={selectedProductIds.size === 0 || bulkOpenMutation.isPending}
+            disabled={
+              activeCouponsQuery.isPending || selectedProductIds.size === 0 || bulkOpenMutation.isPending
+            }
           >
             {bulkOpenMutation.isPending
               ? '여는 중...'

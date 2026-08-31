@@ -23,13 +23,24 @@ function formatPrice(value: number): string {
 
 function ProductCard({ product }: { product: Product }) {
   const [optionIndex, setOptionIndex] = useState(0)
+  const [imageFailed, setImageFailed] = useState(false)
   const selectedOption = product.options[optionIndex]
   const isSoldOut = product.stockLabel === '품절'
 
   return (
     <div className="flex flex-col rounded-xl border border-gray-200 bg-white p-4 shadow-sm shadow-gray-900/5 transition-shadow hover:shadow-md">
-      <div className="flex aspect-square items-center justify-center rounded-lg bg-brand-50 text-5xl">
-        <span aria-hidden>{product.thumbnail}</span>
+      <div className="flex aspect-square items-center justify-center overflow-hidden rounded-lg bg-brand-50 text-5xl">
+        {imageFailed ? (
+          <span aria-hidden>{product.thumbnail}</span>
+        ) : (
+          <img
+            src={product.imageUrl}
+            alt={product.name}
+            loading="lazy"
+            className="h-full w-full object-cover"
+            onError={() => setImageFailed(true)}
+          />
+        )}
       </div>
 
       <div className="mt-3 flex items-start justify-between gap-2">

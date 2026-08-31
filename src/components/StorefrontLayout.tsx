@@ -38,6 +38,11 @@ export default function StorefrontLayout({ children }: { children: ReactNode }) 
             </Link>
           </nav>
         </div>
+        {logoutMutation.isError && (
+          <p className="mx-auto max-w-5xl px-6 pb-2 text-right text-xs text-rose-600">
+            로그아웃에 실패했습니다. 잠시 후 다시 시도해주세요.
+          </p>
+        )}
       </header>
 
       <main className="flex flex-1 flex-col">{children}</main>

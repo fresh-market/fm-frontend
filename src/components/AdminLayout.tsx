@@ -45,6 +45,11 @@ export default function AdminLayout({ children }: { children: ReactNode }) {
             </button>
           </div>
         </div>
+        {logoutMutation.isError && (
+          <p className="mx-auto max-w-5xl px-6 pb-2 text-right text-xs text-rose-600">
+            로그아웃에 실패했습니다. 잠시 후 다시 시도해주세요.
+          </p>
+        )}
         <nav className="mx-auto flex max-w-5xl gap-1 px-6">
           {ADMIN_NAV.map((item) => (
             <NavLink

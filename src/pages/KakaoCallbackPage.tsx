@@ -1,6 +1,6 @@
 import { useMutation } from '@tanstack/react-query'
 import { useEffect, useRef } from 'react'
-import { useNavigate, useSearchParams } from 'react-router-dom'
+import { Link, useNavigate, useSearchParams } from 'react-router-dom'
 import { memberLogin } from '../api/auth'
 import { ApiError, NetworkError } from '../api/client'
 import StorefrontLayout from '../components/StorefrontLayout'
@@ -43,17 +43,28 @@ export default function KakaoCallbackPage() {
   useEffect(() => {
     if (startedRef.current || !code || !state) return
     startedRef.current = true
+    // 요청을 보내는 즉시 code/state를 주소창·히스토리에서 지운다. 이미 쓴 인가 코드가 남아있으면
+    // 새로고침이나 뒤로가기로 이 페이지에 다시 들어왔을 때 소비된 코드로 재요청이 나가 항상
+    // 실패한다 — 그 실패가 뭔지 사용자는 알 길이 없다.
+    navigate('/oauth/callback', { replace: true })
     login({ code, state })
-  }, [code, state, login])
+  }, [code, state, login, navigate])
 
   return (
     <StorefrontLayout>
       <section className="mx-auto flex w-full max-w-sm flex-1 flex-col justify-center px-6 py-16 text-center">
-        {(!code || !state) && (
+        {(!code || !state) && !isPending && !isError && (
           <p className="text-sm text-rose-700">카카오 로그인 정보가 없습니다. 다시 시도해주세요.</p>
         )}
         {isPending && <p className="text-sm text-gray-500">로그인 처리 중...</p>}
-        {isError && <p className="text-sm text-rose-700">{describeError(error)}</p>}
+        {isError && (
+          <div className="space-y-3">
+            <p className="text-sm text-rose-700">{describeError(error)}</p>
+            <Link to="/login" className="text-sm font-medium text-brand-700 hover:text-brand-800">
+              다시 로그인하기
+            </Link>
+          </div>
+        )}
       </section>
     </StorefrontLayout>
   )

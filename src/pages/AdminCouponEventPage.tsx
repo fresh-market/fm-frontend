@@ -186,7 +186,7 @@ export default function AdminCouponEventPage() {
                     {matched ? (
                       <span className="ml-1 text-brand-600">· 일치합니다</span>
                     ) : (
-                      <span className="ml-1 text-gray-600">· 마감 후 이 값으로 갱신됩니다</span>
+                      <span className="ml-1 font-normal text-gray-400">· 마감 후 이 값으로 갱신됩니다</span>
                     )}
                   </p>
                 </div>

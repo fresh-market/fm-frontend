@@ -1,8 +1,16 @@
+import { useMutation } from '@tanstack/react-query'
 import type { ReactNode } from 'react'
-import { Link } from 'react-router-dom'
+import { Link, useNavigate } from 'react-router-dom'
+import { memberLogout } from '../api/auth'
 import { LogoMark } from './Logo'
 
 export default function StorefrontLayout({ children }: { children: ReactNode }) {
+  const navigate = useNavigate()
+  const logoutMutation = useMutation({
+    mutationFn: memberLogout,
+    onSuccess: () => navigate('/login'),
+  })
+
   return (
     <div className="flex min-h-screen flex-col bg-brand-50">
       <header className="sticky top-0 z-10 border-b border-brand-100 bg-white/90 backdrop-blur">
@@ -14,7 +22,18 @@ export default function StorefrontLayout({ children }: { children: ReactNode }) 
             <Link to="/coupons/issue" className="font-medium text-brand-700 hover:text-brand-800">
               쿠폰 받기
             </Link>
-            <Link to="/admin/coupons" className="text-gray-400 hover:text-gray-600">
+            <Link to="/login" className="text-gray-400 hover:text-gray-600">
+              로그인
+            </Link>
+            <button
+              type="button"
+              className="text-gray-400 hover:text-gray-600 disabled:cursor-not-allowed disabled:opacity-50"
+              onClick={() => logoutMutation.mutate()}
+              disabled={logoutMutation.isPending}
+            >
+              로그아웃
+            </button>
+            <Link to="/admin/login" className="text-gray-400 hover:text-gray-600">
               관리자
             </Link>
           </nav>

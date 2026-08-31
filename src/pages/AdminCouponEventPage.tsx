@@ -173,39 +173,22 @@ export default function AdminCouponEventPage() {
             (() => {
               const { issuedQuantityOnCoupon, actualIssueCount } = consistencyMutation.data
               const matched = issuedQuantityOnCoupon === actualIssueCount
-              const diff = Math.abs(issuedQuantityOnCoupon - actualIssueCount)
 
               return (
-                <div className="mt-4 rounded-lg bg-gray-50 p-5">
-                  <p className="mb-4 text-center text-base font-bold tracking-wide text-gray-700">
-                    발급 수량 비교
+                <div className="mt-4 rounded-lg bg-gray-50 p-6 text-center">
+                  <p className="text-sm font-medium text-gray-500">실제 발급된 쿠폰</p>
+                  <p className="mt-1 text-5xl font-bold tabular-nums text-brand-700">
+                    {actualIssueCount}
+                    <span className="ml-1 text-xl font-semibold text-gray-400">건</span>
                   </p>
-                  <div className="flex items-center justify-center gap-4">
-                    <div className="text-center">
-                      <p className="text-3xl font-bold tabular-nums text-gray-900">
-                        {issuedQuantityOnCoupon}
-                      </p>
-                      <p className="mt-1 text-xs text-gray-500">쿠폰 발급 집계값</p>
-                    </div>
-                    <span
-                      className={`text-2xl font-bold ${matched ? 'text-brand-500' : 'text-rose-500'}`}
-                    >
-                      {matched ? '=' : '≠'}
-                    </span>
-                    <div className="text-center">
-                      <p className="text-3xl font-bold tabular-nums text-gray-900">
-                        {actualIssueCount}
-                      </p>
-                      <p className="mt-1 text-xs text-gray-500">실제 발급 건수</p>
-                    </div>
-                  </div>
-                  <div
-                    className={`mt-4 rounded-lg px-3 py-2 text-center text-sm font-semibold ${
-                      matched ? 'bg-brand-100 text-brand-800' : 'bg-rose-100 text-rose-800'
-                    }`}
-                  >
-                    {matched ? '일치합니다' : `${diff}건 차이가 있습니다`}
-                  </div>
+                  <p className="mt-4 border-t border-gray-200 pt-3 text-sm font-semibold text-gray-700">
+                    쿠폰 기록상 집계값 {issuedQuantityOnCoupon}장
+                    {matched ? (
+                      <span className="ml-1 text-brand-600">· 일치합니다</span>
+                    ) : (
+                      <span className="ml-1 font-normal text-gray-400">· 마감 후 이 값으로 갱신됩니다</span>
+                    )}
+                  </p>
                 </div>
               )
             })()}

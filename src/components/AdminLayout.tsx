@@ -1,5 +1,7 @@
+import { useMutation } from '@tanstack/react-query'
 import type { ReactNode } from 'react'
-import { Link, NavLink } from 'react-router-dom'
+import { Link, NavLink, useNavigate } from 'react-router-dom'
+import { adminLogout } from '../api/auth'
 import { LogoMark } from './Logo'
 
 const ADMIN_NAV = [
@@ -8,6 +10,12 @@ const ADMIN_NAV = [
 ]
 
 export default function AdminLayout({ children }: { children: ReactNode }) {
+  const navigate = useNavigate()
+  const logoutMutation = useMutation({
+    mutationFn: adminLogout,
+    onSuccess: () => navigate('/admin/login'),
+  })
+
   return (
     <div className="flex min-h-screen flex-col bg-slate-50">
       <header className="border-b border-slate-200 bg-white">
@@ -20,10 +28,28 @@ export default function AdminLayout({ children }: { children: ReactNode }) {
               BACK OFFICE
             </span>
           </div>
-          <Link to="/coupons/issue" className="text-sm text-gray-400 hover:text-gray-600">
-            쇼핑몰로 이동
-          </Link>
+          <div className="flex items-center gap-4 text-sm">
+            <Link to="/coupons/issue" className="text-gray-400 hover:text-gray-600">
+              쇼핑몰로 이동
+            </Link>
+            <Link to="/admin/login" className="text-gray-400 hover:text-gray-600">
+              로그인
+            </Link>
+            <button
+              type="button"
+              className="text-gray-400 hover:text-gray-600 disabled:cursor-not-allowed disabled:opacity-50"
+              onClick={() => logoutMutation.mutate()}
+              disabled={logoutMutation.isPending}
+            >
+              로그아웃
+            </button>
+          </div>
         </div>
+        {logoutMutation.isError && (
+          <p className="mx-auto max-w-5xl px-6 pb-2 text-right text-xs text-rose-600">
+            로그아웃에 실패했습니다. 잠시 후 다시 시도해주세요.
+          </p>
+        )}
         <nav className="mx-auto flex max-w-5xl gap-1 px-6">
           {ADMIN_NAV.map((item) => (
             <NavLink

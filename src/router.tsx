@@ -7,6 +7,7 @@ import AdminLoginPage from './pages/AdminLoginPage'
 import CouponIssuePage from './pages/CouponIssuePage'
 import KakaoCallbackPage from './pages/KakaoCallbackPage'
 import MemberLoginPage from './pages/MemberLoginPage'
+import ProductListPage from './pages/ProductListPage'
 
 export const router = createBrowserRouter([
   {
@@ -40,5 +41,9 @@ export const router = createBrowserRouter([
   {
     path: '/coupons/issue',
     element: <CouponIssuePage />,
+  },
+  {
+    path: '/products',
+    element: <ProductListPage />,
   },
 ])

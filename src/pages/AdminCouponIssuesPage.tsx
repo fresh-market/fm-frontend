@@ -40,7 +40,7 @@ function describeError(error: unknown): string {
 
 export default function AdminCouponIssuesPage() {
   const { couponId: couponIdParam } = useParams<{ couponId: string }>()
-  const [couponId, setCouponId] = useState(couponIdParam ?? '900001')
+  const [couponId, setCouponId] = useState(couponIdParam ?? '')
   const debouncedCouponId = useDebouncedValue(couponId, 300)
   const [statusFilter, setStatusFilter] = useState<MemberCouponStatus | undefined>(undefined)
   const [pageToken, setPageToken] = useState<string | undefined>(undefined)

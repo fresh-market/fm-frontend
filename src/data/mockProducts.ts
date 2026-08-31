@@ -34,8 +34,6 @@ const CATEGORY_SEEDS: Array<{
       { name: '양파', origin: '국내산 · 무안', basePrice: 4900, options: [{ label: '1.5kg', priceOffset: 0 }, { label: '3kg', priceOffset: 4500 }] },
       { name: '애호박', origin: '국내산 · 논산', basePrice: 2200, options: [{ label: '1개', priceOffset: 0 }, { label: '3개', priceOffset: 4800 }] },
       { name: '건표고버섯', origin: '국내산 · 장수', basePrice: 12900, options: [{ label: '150g', priceOffset: 0 }, { label: '300g', priceOffset: 11900 }] },
-      { name: '대파', origin: '국내산 · 진도', basePrice: 3900, options: [{ label: '1단', priceOffset: 0 }] },
-      { name: '깻잎', origin: '국내산 · 상주', basePrice: 3200, options: [{ label: '1봉(50g)', priceOffset: 0 }, { label: '2봉(100g)', priceOffset: 2800 }] },
     ],
   },
   {
@@ -50,8 +48,6 @@ const CATEGORY_SEEDS: Array<{
       { name: '델라웨어 포도', origin: '국내산 · 김천', basePrice: 9900, options: [{ label: '1kg', priceOffset: 0 }] },
       { name: '천혜향', origin: '국내산 · 제주', basePrice: 16900, options: [{ label: '2kg', priceOffset: 0 }, { label: '4kg', priceOffset: 15900 }] },
       { name: '토마토', origin: '국내산 · 부여', basePrice: 7900, options: [{ label: '1.5kg', priceOffset: 0 }] },
-      { name: '자두', origin: '국내산 · 김천', basePrice: 8900, options: [{ label: '1kg', priceOffset: 0 }] },
-      { name: '블루베리', origin: '국내산 · 고창', basePrice: 9900, options: [{ label: '500g', priceOffset: 0 }] },
     ],
   },
   {
@@ -79,6 +75,7 @@ const CATEGORY_SEEDS: Array<{
       { name: '고등어', origin: '국내산 · 통영', basePrice: 8900, options: [{ label: '2마리', priceOffset: 0 }] },
       { name: '건멸치', origin: '국내산 · 남해', basePrice: 12900, options: [{ label: '300g', priceOffset: 0 }] },
       { name: '전복', origin: '국내산 · 완도', basePrice: 29900, options: [{ label: '5미', priceOffset: 0 }] },
+      { name: '오징어', origin: '국내산 · 동해', basePrice: 9900, options: [{ label: '2마리', priceOffset: 0 }] },
     ],
   },
   {
@@ -91,6 +88,8 @@ const CATEGORY_SEEDS: Array<{
       { name: '무염버터', origin: '뉴질랜드산', basePrice: 8900, options: [{ label: '450g', priceOffset: 0 }] },
       { name: '생크림', origin: '국내산', basePrice: 4900, options: [{ label: '500ml', priceOffset: 0 }] },
       { name: '떠먹는 요거트', origin: '국내산', basePrice: 5400, options: [{ label: '4개입', priceOffset: 0 }] },
+      { name: '생모짜렐라 치즈', origin: '국내산', basePrice: 7900, options: [{ label: '200g', priceOffset: 0 }] },
+      { name: '저지방 우유', origin: '국내산', basePrice: 3200, options: [{ label: '900ml', priceOffset: 0 }] },
     ],
   },
 ]

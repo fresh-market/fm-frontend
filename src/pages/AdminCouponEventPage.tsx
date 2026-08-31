@@ -44,27 +44,6 @@ function SectionCard({ title, children }: { title: string; children: ReactNode }
   )
 }
 
-function CheckRow({ ok, label, detail }: { ok: boolean; label: string; detail: string }) {
-  return (
-    <div
-      className={`flex items-center justify-between gap-3 rounded-lg border px-3 py-2.5 text-sm ${
-        ok ? 'border-brand-100 bg-brand-50' : 'border-rose-200 bg-rose-50'
-      }`}
-    >
-      <span className="flex items-center gap-2">
-        <span
-          className={`flex h-5 w-5 shrink-0 items-center justify-center rounded-full text-xs font-bold text-white ${
-            ok ? 'bg-brand-600' : 'bg-rose-600'
-          }`}
-        >
-          {ok ? '✓' : '✕'}
-        </span>
-        <span className={`font-medium ${ok ? 'text-brand-800' : 'text-rose-800'}`}>{label}</span>
-      </span>
-      <span className={ok ? 'text-brand-700' : 'text-rose-700'}>{detail}</span>
-    </div>
-  )
-}
 
 export default function AdminCouponEventPage() {
   const [searchParams] = useSearchParams()
@@ -190,51 +169,46 @@ export default function AdminCouponEventPage() {
           >
             {consistencyMutation.isPending ? '검증 중...' : '지금 검증하기'}
           </button>
-          {consistencyMutation.isSuccess && (
-            <div className="mt-4 space-y-3">
-              <div
-                className={`flex items-center gap-3 rounded-lg px-4 py-3 ${
-                  consistencyMutation.data.consistent
-                    ? 'bg-brand-50 text-brand-800'
-                    : 'bg-rose-50 text-rose-800'
-                }`}
-              >
-                <span
-                  className={`flex h-8 w-8 shrink-0 items-center justify-center rounded-full text-base font-bold text-white ${
-                    consistencyMutation.data.consistent ? 'bg-brand-600' : 'bg-rose-600'
-                  }`}
-                >
-                  {consistencyMutation.data.consistent ? '✓' : '!'}
-                </span>
-                <span className="font-semibold">
-                  {consistencyMutation.data.consistent ? '정합성 이상 없음' : '정합성 어긋남 발견'}
-                </span>
-              </div>
+          {consistencyMutation.isSuccess &&
+            (() => {
+              const { issuedQuantityOnCoupon, actualIssueCount } = consistencyMutation.data
+              const matched = issuedQuantityOnCoupon === actualIssueCount
+              const diff = Math.abs(issuedQuantityOnCoupon - actualIssueCount)
 
-              <CheckRow
-                ok={
-                  consistencyMutation.data.issuedQuantityOnCoupon ===
-                  consistencyMutation.data.actualIssueCount
-                }
-                label="재고 카운터 일치"
-                detail={`쿠폰 기억 ${consistencyMutation.data.issuedQuantityOnCoupon}장 · 실제 ${consistencyMutation.data.actualIssueCount}건`}
-              />
-              <CheckRow
-                ok={consistencyMutation.data.duplicatedMembers === 0}
-                label="1인 1매 (중복 발급 없음)"
-                detail={`${consistencyMutation.data.duplicatedMembers}명`}
-              />
-              <CheckRow
-                ok={consistencyMutation.data.seqGaps.length === 0}
-                label="발급 순번 연속성"
-                detail={
-                  consistencyMutation.data.seqGaps.length === 0
-                    ? '빈 순번 없음'
-                    : `빈 순번 ${consistencyMutation.data.seqGaps.length}개: ${consistencyMutation.data.seqGaps.join(', ')}`
-                }
-              />
-            </div>
-          )}
+              return (
+                <div className="mt-4 rounded-lg bg-gray-50 p-5">
+                  <p className="mb-4 text-center text-base font-bold tracking-wide text-gray-700">
+                    발급 수량 비교
+                  </p>
+                  <div className="flex items-center justify-center gap-4">
+                    <div className="text-center">
+                      <p className="text-3xl font-bold tabular-nums text-gray-900">
+                        {issuedQuantityOnCoupon}
+                      </p>
+                      <p className="mt-1 text-xs text-gray-500">쿠폰 발급 집계값</p>
+                    </div>
+                    <span
+                      className={`text-2xl font-bold ${matched ? 'text-brand-500' : 'text-rose-500'}`}
+                    >
+                      {matched ? '=' : '≠'}
+                    </span>
+                    <div className="text-center">
+                      <p className="text-3xl font-bold tabular-nums text-gray-900">
+                        {actualIssueCount}
+                      </p>
+                      <p className="mt-1 text-xs text-gray-500">실제 발급 건수</p>
+                    </div>
+                  </div>
+                  <div
+                    className={`mt-4 rounded-lg px-3 py-2 text-center text-sm font-semibold ${
+                      matched ? 'bg-brand-100 text-brand-800' : 'bg-rose-100 text-rose-800'
+                    }`}
+                  >
+                    {matched ? '일치합니다' : `${diff}건 차이가 있습니다`}
+                  </div>
+                </div>
+              )
+            })()}
           {consistencyMutation.isError && (
             <p className="mt-3 text-sm text-rose-700">{describeError(consistencyMutation.error)}</p>
           )}

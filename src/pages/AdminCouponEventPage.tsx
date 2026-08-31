@@ -10,7 +10,6 @@ import {
   verifyCouponConsistency,
 } from '../api/coupon'
 import AdminLayout from '../components/AdminLayout'
-import { Badge } from '../components/Badge'
 
 // fm-backend CouponErrorCode 중 이 화면의 세 API(open/close/issue-period)가 실제로 던지는 코드만 다룬다
 const ERROR_MESSAGES: Record<string, string> = {
@@ -44,6 +43,7 @@ function SectionCard({ title, children }: { title: string; children: ReactNode }
     </section>
   )
 }
+
 
 export default function AdminCouponEventPage() {
   const [searchParams] = useSearchParams()
@@ -169,33 +169,46 @@ export default function AdminCouponEventPage() {
           >
             {consistencyMutation.isPending ? '검증 중...' : '지금 검증하기'}
           </button>
-          {consistencyMutation.isSuccess && (
-            <div className="mt-4 space-y-2 rounded-lg bg-gray-50 p-4 text-sm">
-              <Badge tone={consistencyMutation.data.consistent ? 'green' : 'rose'}>
-                {consistencyMutation.data.consistent ? '정합성 이상 없음' : '정합성 어긋남 발견'}
-              </Badge>
-              <dl className="grid grid-cols-2 gap-y-1 pt-1 text-gray-600">
-                <dt>쿠폰이 기억하는 발급 수</dt>
-                <dd className="text-right font-medium text-gray-900">
-                  {consistencyMutation.data.issuedQuantityOnCoupon}
-                </dd>
-                <dt>실제 발급 행 수</dt>
-                <dd className="text-right font-medium text-gray-900">
-                  {consistencyMutation.data.actualIssueCount}
-                </dd>
-                <dt>중복 발급 회원 수</dt>
-                <dd className="text-right font-medium text-gray-900">
-                  {consistencyMutation.data.duplicatedMembers}
-                </dd>
-                <dt>비어있는 순번</dt>
-                <dd className="text-right font-medium text-gray-900">
-                  {consistencyMutation.data.seqGaps.length === 0
-                    ? '없음'
-                    : consistencyMutation.data.seqGaps.join(', ')}
-                </dd>
-              </dl>
-            </div>
-          )}
+          {consistencyMutation.isSuccess &&
+            (() => {
+              const { issuedQuantityOnCoupon, actualIssueCount } = consistencyMutation.data
+              const matched = issuedQuantityOnCoupon === actualIssueCount
+              const diff = Math.abs(issuedQuantityOnCoupon - actualIssueCount)
+
+              return (
+                <div className="mt-4 rounded-lg bg-gray-50 p-5">
+                  <p className="mb-4 text-center text-base font-bold tracking-wide text-gray-700">
+                    발급 수량 비교
+                  </p>
+                  <div className="flex items-center justify-center gap-4">
+                    <div className="text-center">
+                      <p className="text-3xl font-bold tabular-nums text-gray-900">
+                        {issuedQuantityOnCoupon}
+                      </p>
+                      <p className="mt-1 text-xs text-gray-500">쿠폰 발급 집계값</p>
+                    </div>
+                    <span
+                      className={`text-2xl font-bold ${matched ? 'text-brand-500' : 'text-rose-500'}`}
+                    >
+                      {matched ? '=' : '≠'}
+                    </span>
+                    <div className="text-center">
+                      <p className="text-3xl font-bold tabular-nums text-gray-900">
+                        {actualIssueCount}
+                      </p>
+                      <p className="mt-1 text-xs text-gray-500">실제 발급 건수</p>
+                    </div>
+                  </div>
+                  <div
+                    className={`mt-4 rounded-lg px-3 py-2 text-center text-sm font-semibold ${
+                      matched ? 'bg-brand-100 text-brand-800' : 'bg-rose-100 text-rose-800'
+                    }`}
+                  >
+                    {matched ? '일치합니다' : `${diff}건 차이가 있습니다`}
+                  </div>
+                </div>
+              )
+            })()}
           {consistencyMutation.isError && (
             <p className="mt-3 text-sm text-rose-700">{describeError(consistencyMutation.error)}</p>
           )}

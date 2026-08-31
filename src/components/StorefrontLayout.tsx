@@ -1,14 +1,27 @@
-import { useMutation } from '@tanstack/react-query'
+import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import type { ReactNode } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
-import { memberLogout } from '../api/auth'
+import { fetchMyProfile, memberLogout } from '../api/auth'
+import { ApiError } from '../api/client'
 import { LogoMark } from './Logo'
 
 export default function StorefrontLayout({ children }: { children: ReactNode }) {
   const navigate = useNavigate()
+  const queryClient = useQueryClient()
+
+  const profileQuery = useQuery({
+    queryKey: ['memberProfile'],
+    queryFn: ({ signal }) => fetchMyProfile(signal),
+    // 로그인 안 한 방문자에게는 401이 정상 응답이라, 그때마다 3번씩 재시도하며 서버를 두드릴
+    // 이유가 없다. 네트워크 단절만 재시도 대상으로 남긴다.
+    retry: (failureCount, error) => !(error instanceof ApiError) && failureCount < 3,
+  })
   const logoutMutation = useMutation({
     mutationFn: memberLogout,
-    onSuccess: () => navigate('/login'),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['memberProfile'] })
+      navigate('/login')
+    },
   })
 
   return (
@@ -22,20 +35,29 @@ export default function StorefrontLayout({ children }: { children: ReactNode }) 
             <Link to="/coupons/issue" className="font-medium text-brand-700 hover:text-brand-800">
               쿠폰 받기
             </Link>
-            <Link to="/login" className="text-gray-400 hover:text-gray-600">
-              로그인
-            </Link>
-            <button
-              type="button"
-              className="text-gray-400 hover:text-gray-600 disabled:cursor-not-allowed disabled:opacity-50"
-              onClick={() => logoutMutation.mutate()}
-              disabled={logoutMutation.isPending}
-            >
-              로그아웃
-            </button>
-            <Link to="/admin/login" className="text-gray-400 hover:text-gray-600">
-              관리자
-            </Link>
+            <div className="flex items-center gap-3 border-l border-gray-200 pl-5 text-gray-400">
+              {profileQuery.isSuccess ? (
+                <button
+                  type="button"
+                  className="hover:text-gray-600 disabled:cursor-not-allowed disabled:opacity-50"
+                  onClick={() => logoutMutation.mutate()}
+                  disabled={logoutMutation.isPending}
+                >
+                  {logoutMutation.isPending
+                    ? '로그아웃 중...'
+                    : `${profileQuery.data.nickname}님 로그아웃`}
+                </button>
+              ) : (
+                !profileQuery.isPending && (
+                  <Link to="/login" className="hover:text-gray-600">
+                    로그인
+                  </Link>
+                )
+              )}
+              <Link to="/admin/login" className="hover:text-gray-600">
+                관리자
+              </Link>
+            </div>
           </nav>
         </div>
         {logoutMutation.isError && (

@@ -45,3 +45,13 @@ export function memberLogin(authorizationCode: string, state: string, remember: 
 export function memberLogout() {
   return apiClient.delete<void>('/v1/auth/tokens')
 }
+
+export interface MemberProfile {
+  memberId: number
+  nickname: string
+}
+
+// 로그인 여부를 판단하는 용도로도 쓴다 — 401/403이면 로그아웃 상태로 본다.
+export function fetchMyProfile(signal?: AbortSignal) {
+  return apiClient.get<MemberProfile>('/v1/members/me', { signal })
+}

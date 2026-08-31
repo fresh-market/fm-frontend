@@ -1,4 +1,4 @@
-import { useMutation } from '@tanstack/react-query'
+import { useMutation, useQueryClient } from '@tanstack/react-query'
 import { useEffect, useRef } from 'react'
 import { Link, useNavigate, useSearchParams } from 'react-router-dom'
 import { memberLogin } from '../api/auth'
@@ -28,13 +28,19 @@ function describeError(error: unknown): string {
 export default function KakaoCallbackPage() {
   const [searchParams] = useSearchParams()
   const navigate = useNavigate()
+  const queryClient = useQueryClient()
   // 카카오 인가 코드는 1회용이라, StrictMode의 effect 두 번 실행 때문에 두 번 보내면 안 된다
   const startedRef = useRef(false)
 
   const { mutate: login, isPending, isError, error } = useMutation({
     mutationFn: ({ code, state }: { code: string; state: string }) =>
       memberLogin(code, state, false),
-    onSuccess: () => navigate('/coupons/issue'),
+    onSuccess: () => {
+      // 헤더의 로그인/로그아웃 표시가 GET /v1/members/me 결과로 정해지므로, 새로 로그인한
+      // 상태를 바로 반영하려면 그 캐시를 무효화해야 한다.
+      queryClient.invalidateQueries({ queryKey: ['memberProfile'] })
+      navigate('/coupons/issue')
+    },
   })
 
   const code = searchParams.get('code')

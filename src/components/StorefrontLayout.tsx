@@ -1,13 +1,15 @@
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import type { ReactNode } from 'react'
+import { useState } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
-import { fetchMyProfile, memberLogout } from '../api/auth'
+import { fetchMyProfile, memberLogout, readAdminSession } from '../api/auth'
 import { ApiError } from '../api/client'
 import { LogoMark } from './Logo'
 
 export default function StorefrontLayout({ children }: { children: ReactNode }) {
   const navigate = useNavigate()
   const queryClient = useQueryClient()
+  const [adminSession] = useState(() => readAdminSession())
 
   const profileQuery = useQuery({
     queryKey: ['memberProfile'],
@@ -35,9 +37,9 @@ export default function StorefrontLayout({ children }: { children: ReactNode }) 
             <Link to="/coupons/issue" className="font-medium text-brand-700 hover:text-brand-800">
               쿠폰 받기
             </Link>
-            <span className="cursor-default text-gray-300" aria-disabled="true">
+            <Link to="/products" className="font-medium text-brand-700 hover:text-brand-800">
               상품 조회
-            </span>
+            </Link>
             <div className="flex items-center gap-4 border-l border-gray-200 pl-5">
               {profileQuery.isSuccess ? (
                 <button
@@ -67,10 +69,10 @@ export default function StorefrontLayout({ children }: { children: ReactNode }) 
                 )
               )}
               <Link
-                to="/admin/login"
+                to={adminSession ? '/admin/coupon-events' : '/admin/login'}
                 className="rounded-full bg-slate-800 px-3.5 py-1.5 text-sm font-semibold tracking-wide text-white transition-colors hover:bg-slate-700"
               >
-                관리자
+                {adminSession ? `${adminSession.name}님 (관리자)` : '관리자'}
               </Link>
             </div>
           </nav>

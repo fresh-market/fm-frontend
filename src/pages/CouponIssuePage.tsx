@@ -35,7 +35,7 @@ function describeError(error: unknown): string {
 
 export default function CouponIssuePage() {
   const [searchParams] = useSearchParams()
-  const [couponId, setCouponId] = useState(searchParams.get('couponId') ?? '900001')
+  const [couponId, setCouponId] = useState(searchParams.get('couponId') ?? '')
   const debouncedCouponId = useDebouncedValue(couponId, 300)
   const queryClient = useQueryClient()
 

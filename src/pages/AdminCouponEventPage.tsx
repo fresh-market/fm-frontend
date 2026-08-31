@@ -1,7 +1,13 @@
 import { useMutation } from '@tanstack/react-query'
 import { useState } from 'react'
+import { useSearchParams } from 'react-router-dom'
 import { ApiError, NetworkError } from '../api/client'
-import { changeIssuePeriod, closeCouponEvent, openCouponEvent } from '../api/coupon'
+import {
+  changeIssuePeriod,
+  closeCouponEvent,
+  openCouponEvent,
+  verifyCouponConsistency,
+} from '../api/coupon'
 
 // fm-backend CouponErrorCode 중 이 화면의 세 API(open/close/issue-period)가 실제로 던지는 코드만 다룬다
 const ERROR_MESSAGES: Record<string, string> = {
@@ -28,7 +34,8 @@ function describeError(error: unknown): string {
 }
 
 export default function AdminCouponEventPage() {
-  const [couponId, setCouponId] = useState('900001')
+  const [searchParams] = useSearchParams()
+  const [couponId, setCouponId] = useState(searchParams.get('couponId') ?? '900001')
   const [issueStartAt, setIssueStartAt] = useState('')
   const [issueEndAt, setIssueEndAt] = useState('')
 
@@ -36,6 +43,9 @@ export default function AdminCouponEventPage() {
   const closeMutation = useMutation({ mutationFn: () => closeCouponEvent(couponId) })
   const periodMutation = useMutation({
     mutationFn: () => changeIssuePeriod(couponId, { issueStartAt, issueEndAt }),
+  })
+  const consistencyMutation = useMutation({
+    mutationFn: () => verifyCouponConsistency(couponId),
   })
 
   return (
@@ -47,7 +57,13 @@ export default function AdminCouponEventPage() {
         <input
           className="w-full rounded border border-gray-300 px-3 py-2"
           value={couponId}
-          onChange={(event) => setCouponId(event.target.value)}
+          onChange={(event) => {
+            setCouponId(event.target.value)
+            openMutation.reset()
+            closeMutation.reset()
+            periodMutation.reset()
+            consistencyMutation.reset()
+          }}
           inputMode="numeric"
         />
       </label>
@@ -119,6 +135,37 @@ export default function AdminCouponEventPage() {
         )}
         {periodMutation.isError && (
           <p className="text-sm text-rose-700">{describeError(periodMutation.error)}</p>
+        )}
+      </section>
+
+      <section className="space-y-2">
+        <h2 className="font-medium">정합성 검증</h2>
+        <button
+          type="button"
+          className="rounded bg-slate-600 px-4 py-2 text-white disabled:opacity-50"
+          onClick={() => consistencyMutation.mutate()}
+          disabled={!couponId || consistencyMutation.isPending}
+        >
+          지금 검증하기
+        </button>
+        {consistencyMutation.isSuccess && (
+          <div className="space-y-1 rounded border border-gray-200 p-3 text-sm">
+            <p className={consistencyMutation.data.consistent ? 'text-emerald-700' : 'text-rose-700'}>
+              {consistencyMutation.data.consistent ? '정합성 이상 없음' : '정합성 어긋남 발견'}
+            </p>
+            <p>쿠폰이 기억하는 발급 수: {consistencyMutation.data.issuedQuantityOnCoupon}</p>
+            <p>실제 발급 행 수: {consistencyMutation.data.actualIssueCount}</p>
+            <p>중복 발급 회원 수: {consistencyMutation.data.duplicatedMembers}</p>
+            <p>
+              비어있는 순번:{' '}
+              {consistencyMutation.data.seqGaps.length === 0
+                ? '없음'
+                : consistencyMutation.data.seqGaps.join(', ')}
+            </p>
+          </div>
+        )}
+        {consistencyMutation.isError && (
+          <p className="text-sm text-rose-700">{describeError(consistencyMutation.error)}</p>
         )}
       </section>
     </div>

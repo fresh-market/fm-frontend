@@ -7,6 +7,8 @@ import {
   fetchMemberCouponHistory,
   type MemberCouponStatus,
 } from '../api/coupon'
+import AdminLayout from '../components/AdminLayout'
+import { Badge } from '../components/Badge'
 import { useDebouncedValue } from '../hooks/useDebouncedValue'
 
 const STATUS_LABELS: Record<MemberCouponStatus, string> = {
@@ -14,6 +16,13 @@ const STATUS_LABELS: Record<MemberCouponStatus, string> = {
   USED: '사용',
   EXPIRED: '만료',
   CANCELED: '취소',
+}
+
+const STATUS_TONES: Record<MemberCouponStatus, 'blue' | 'gray' | 'amber' | 'rose'> = {
+  ISSUED: 'blue',
+  USED: 'gray',
+  EXPIRED: 'amber',
+  CANCELED: 'rose',
 }
 
 function describeError(error: unknown): string {
@@ -54,14 +63,17 @@ export default function AdminCouponIssuesPage() {
   }
 
   return (
-    <div className="mx-auto max-w-3xl space-y-6 p-6">
-      <h1 className="text-xl font-semibold">쿠폰 발급 목록 (관리자)</h1>
+    <AdminLayout>
+      <div className="mb-6">
+        <h1 className="text-xl font-bold text-gray-900">쿠폰 발급 목록</h1>
+        <p className="mt-1 text-sm text-gray-500">쿠폰별 발급 이력과 상태 변화를 조회합니다.</p>
+      </div>
 
-      <div className="flex flex-wrap items-end gap-3">
+      <div className="mb-5 flex flex-wrap items-end gap-3 rounded-xl border border-gray-200 bg-white p-4">
         <label className="block space-y-1 text-sm">
-          <span className="text-gray-600">쿠폰 ID</span>
+          <span className="text-gray-500">쿠폰 ID</span>
           <input
-            className="rounded border border-gray-300 px-2 py-1"
+            className="rounded-lg border border-gray-300 px-3 py-1.5 focus:border-brand-500 focus:outline-none"
             value={couponId}
             onChange={(event) => {
               setCouponId(event.target.value)
@@ -71,9 +83,9 @@ export default function AdminCouponIssuesPage() {
           />
         </label>
         <label className="flex items-center gap-2 text-sm">
-          <span className="text-gray-600">상태</span>
+          <span className="text-gray-500">상태</span>
           <select
-            className="rounded border border-gray-300 px-2 py-1"
+            className="rounded-lg border border-gray-300 px-2 py-1.5 focus:border-brand-500 focus:outline-none"
             value={statusFilter ?? ''}
             onChange={(event) => {
               const value = event.target.value
@@ -99,37 +111,41 @@ export default function AdminCouponIssuesPage() {
       {issuesQuery.isSuccess && (
         <div className="space-y-3">
           {issuesQuery.data.items.length === 0 && (
-            <p className="text-sm text-gray-500">발급 이력이 없습니다.</p>
+            <p className="rounded-xl border border-dashed border-gray-300 bg-white py-10 text-center text-sm text-gray-400">
+              발급 이력이 없습니다.
+            </p>
           )}
           {issuesQuery.data.items.map((issue) => (
             <div
               key={issue.memberCouponId}
-              className="flex items-center justify-between rounded border border-gray-200 p-3 text-sm"
+              className="flex items-center justify-between rounded-xl border border-gray-200 bg-white p-4 text-sm shadow-sm shadow-gray-900/5"
             >
-              <div>
-                <p>
-                  회원 {issue.memberId} · 순번 {issue.issueSeq ?? '-'} ·{' '}
-                  <span className="font-medium">{STATUS_LABELS[issue.status]}</span>
-                </p>
+              <div className="space-y-1">
+                <div className="flex items-center gap-2">
+                  <span className="font-medium text-gray-900">
+                    회원 {issue.memberId} · 순번 {issue.issueSeq ?? '-'}
+                  </span>
+                  <Badge tone={STATUS_TONES[issue.status]}>{STATUS_LABELS[issue.status]}</Badge>
+                </div>
                 <p className="text-gray-500">
                   발급 {issue.issuedAt} {issue.usedAt ? `· 사용 ${issue.usedAt}` : ''}
                 </p>
               </div>
               <button
                 type="button"
-                className="text-blue-600 underline"
+                className="text-sm font-medium text-brand-700 hover:text-brand-800"
                 onClick={() => setSelectedMemberCouponId(issue.memberCouponId)}
               >
-                이력 보기
+                이력 보기 →
               </button>
             </div>
           ))}
 
-          <div className="flex gap-2">
+          <div className="flex gap-2 pt-2">
             {pageToken !== undefined && (
               <button
                 type="button"
-                className="rounded border border-gray-300 px-3 py-1 text-sm"
+                className="rounded-lg border border-gray-300 bg-white px-3 py-1.5 text-sm font-medium text-gray-600 hover:bg-gray-50"
                 onClick={resetToFirstPage}
               >
                 처음부터
@@ -138,7 +154,7 @@ export default function AdminCouponIssuesPage() {
             {issuesQuery.data.nextPageToken && (
               <button
                 type="button"
-                className="rounded border border-gray-300 px-3 py-1 text-sm"
+                className="rounded-lg border border-gray-300 bg-white px-3 py-1.5 text-sm font-medium text-gray-600 hover:bg-gray-50"
                 onClick={() => setPageToken(issuesQuery.data.nextPageToken ?? undefined)}
               >
                 더보기
@@ -149,15 +165,15 @@ export default function AdminCouponIssuesPage() {
       )}
 
       {selectedMemberCouponId !== null && (
-        <section className="space-y-2 rounded border border-gray-200 p-3">
-          <div className="flex items-center justify-between">
-            <h2 className="font-medium">발급분 {selectedMemberCouponId} 상태 이력</h2>
+        <section className="mt-6 rounded-xl border border-gray-200 bg-white p-4">
+          <div className="mb-3 flex items-center justify-between">
+            <h2 className="font-semibold text-gray-800">발급분 {selectedMemberCouponId} 상태 이력</h2>
             <button
               type="button"
-              className="text-sm text-gray-500 underline"
+              className="text-sm text-gray-400 hover:text-gray-600"
               onClick={() => setSelectedMemberCouponId(null)}
             >
-              닫기
+              닫기 ✕
             </button>
           </div>
           {historyQuery.isPending && <p className="text-sm text-gray-500">불러오는 중...</p>}
@@ -165,10 +181,13 @@ export default function AdminCouponIssuesPage() {
             <p className="text-sm text-rose-700">{describeError(historyQuery.error)}</p>
           )}
           {historyQuery.isSuccess && (
-            <ul className="space-y-1 text-sm">
+            <ul className="space-y-2 border-l-2 border-brand-100 pl-4 text-sm">
               {historyQuery.data.history.map((entry, index) => (
-                <li key={index}>
-                  {entry.fromStatus ?? '(최초 발급)'} → {entry.toStatus}
+                <li key={index} className="relative text-gray-600">
+                  <span className="absolute -left-[1.35rem] top-1.5 h-2 w-2 rounded-full bg-brand-500" />
+                  <span className="font-medium text-gray-900">
+                    {entry.fromStatus ?? '(최초 발급)'} → {entry.toStatus}
+                  </span>
                   {entry.reason ? ` · ${entry.reason}` : ''} · {entry.createdAt}
                 </li>
               ))}
@@ -176,6 +195,6 @@ export default function AdminCouponIssuesPage() {
           )}
         </section>
       )}
-    </div>
+    </AdminLayout>
   )
 }

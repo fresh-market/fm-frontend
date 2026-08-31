@@ -9,13 +9,13 @@ function App() {
           지금, 선착순 쿠폰 이벤트 진행 중
         </span>
         <h1 className="text-4xl font-bold tracking-tight text-brand-900 sm:text-5xl">
-          신선식품을
-          <br className="hidden sm:block" /> 가장 합리적인 가격에
+          <span className="block">신선식품을</span>
+          <span className="mt-2 block">가장 합리적인 가격에</span>
         </h1>
         <p className="max-w-xl text-gray-500">
           신선식품 자사몰 Fresh Market입니다.
           <br />
-          한정 수량 쿠폰을 선착순으로 발급하고, 발급 현황도 실시간으로 투명하게 공개합니다.
+          한정 수량 쿠폰, 서두르지 않으면 금방 마감돼요.
         </p>
         <Link
           to="/coupons/issue"
@@ -26,11 +26,10 @@ function App() {
       </section>
 
       <section className="border-t border-brand-100 bg-white">
-        <div className="mx-auto grid max-w-5xl gap-6 px-6 py-14 sm:grid-cols-3">
+        <div className="mx-auto grid max-w-2xl gap-6 px-6 py-14 sm:grid-cols-2">
           {[
             { emoji: '⏱️', title: '선착순 발급', desc: '한정 수량 쿠폰, 먼저 받는 분이 임자' },
-            { emoji: '📊', title: '실시간 발급 현황', desc: '지금까지 몇 장 발급됐는지 바로 확인' },
-            { emoji: '🛠️', title: '백오피스 운영', desc: '이벤트 오픈·마감, 발급 기간 관리를 한 곳에서' },
+            { emoji: '📊', title: '남은 수량 확인', desc: '몇 장 남았는지 보고 타이밍을 놓치지 마세요' },
           ].map((item) => (
             <div key={item.title} className="flex flex-col items-center gap-2 text-center">
               <span className="text-3xl">{item.emoji}</span>

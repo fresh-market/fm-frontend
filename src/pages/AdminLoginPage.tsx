@@ -1,7 +1,7 @@
 import { useMutation } from '@tanstack/react-query'
 import { useState } from 'react'
 import { useNavigate } from 'react-router-dom'
-import { adminLogin } from '../api/auth'
+import { adminLogin, markAdminSession } from '../api/auth'
 import { ApiError, NetworkError } from '../api/client'
 import AdminLayout from '../components/AdminLayout'
 
@@ -32,7 +32,10 @@ export default function AdminLoginPage() {
 
   const loginMutation = useMutation({
     mutationFn: () => adminLogin(loginId, password),
-    onSuccess: () => navigate('/admin/coupons'),
+    onSuccess: (data) => {
+      markAdminSession(data.admin)
+      navigate('/admin/coupons')
+    },
   })
 
   return (

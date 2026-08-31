@@ -35,26 +35,38 @@ export default function StorefrontLayout({ children }: { children: ReactNode }) 
             <Link to="/coupons/issue" className="font-medium text-brand-700 hover:text-brand-800">
               쿠폰 받기
             </Link>
-            <div className="flex items-center gap-3 border-l border-gray-200 pl-5 text-gray-400">
+            <div className="flex items-center gap-4 border-l border-gray-200 pl-5">
               {profileQuery.isSuccess ? (
                 <button
                   type="button"
-                  className="hover:text-gray-600 disabled:cursor-not-allowed disabled:opacity-50"
+                  className="flex items-center gap-1.5 text-gray-500 hover:text-gray-700 disabled:cursor-not-allowed disabled:opacity-50"
                   onClick={() => logoutMutation.mutate()}
                   disabled={logoutMutation.isPending}
                 >
+                  <span aria-hidden className="text-base leading-none">
+                    👤
+                  </span>
                   {logoutMutation.isPending
                     ? '로그아웃 중...'
                     : `${profileQuery.data.nickname}님 로그아웃`}
                 </button>
               ) : (
                 !profileQuery.isPending && (
-                  <Link to="/login" className="hover:text-gray-600">
+                  <Link
+                    to="/login"
+                    className="flex items-center gap-1.5 text-gray-500 hover:text-gray-700"
+                  >
+                    <span aria-hidden className="text-base leading-none">
+                      👤
+                    </span>
                     로그인
                   </Link>
                 )
               )}
-              <Link to="/admin/login" className="hover:text-gray-600">
+              <Link
+                to="/admin/login"
+                className="rounded-full bg-slate-800 px-3 py-1 text-xs font-semibold tracking-wide text-white transition-colors hover:bg-slate-700"
+              >
                 관리자
               </Link>
             </div>
